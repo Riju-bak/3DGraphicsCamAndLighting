@@ -115,10 +115,10 @@ void Shader::SetUniformi(const char* name, int value)
 }
 
 
-void Shader::SetUniformf(const char* name, float value)
+void Shader::SetUniformf(std::string name, float value)
 {
 	Activate();
-	int location = glGetUniformLocation(this->ID, name);
+	int location = glGetUniformLocation(this->ID, name.c_str());
 	glUniform1f(location, value);
 }
 
@@ -137,9 +137,9 @@ void Shader::SetUniformVec4(const char* name, const glm::vec4& vec)
 }
 
 
-void Shader::SetUniformVec3(const char* name, const glm::vec3& vec)
+void Shader::SetUniformVec3(std::string name, const glm::vec3& vec)
 {
 	Activate();
-	int location = glGetUniformLocation(this->ID, name);
+	int location = glGetUniformLocation(this->ID, name.c_str());
 	glUniform3fv(location, 1, glm::value_ptr(vec));
 }

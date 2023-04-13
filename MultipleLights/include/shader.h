@@ -26,7 +26,7 @@ public:
 	Shader(const char* vertexFile, const char* fragmentFile);
 
 	void SetUniformi(const char* name, int value);
-	void SetUniformf(const char* name, float value);
+	void SetUniformf(std::string name, float value);
 
 	void SetUniformMatrix4fv(const char* name, glm::mat4& transform);
 
@@ -35,5 +35,5 @@ public:
 	void Activate();
 
 	void Delete();
-	void SetUniformVec3(const char* name, const glm::vec3& vec3);
+	void SetUniformVec3(std::string name, const glm::vec3& vec3);
 };

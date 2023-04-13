@@ -109,7 +109,7 @@ namespace
 
 	glm::vec3 lightColor{ 1.0f, 1.0f, 1.0f };
 	glm::vec3 lightDirection{ 0, 0, 10.0f };
-	glm::vec3 lightAmbient = 0.05f * lightColor;
+	glm::vec3 lightAmbient = 0.005f * lightColor;
 	glm::vec3 lightDiffuse = 0.5f * lightColor;
 	glm::vec3 lightSpecular = lightColor;
 	float lightAttenuationConstant = 1.0f;
@@ -118,7 +118,21 @@ namespace
 	float materialShininess = 2000.0f;
 	float spotlightCutoff = glm::cos(glm::radians(8.5f));
 	float spotlightOuterCutoff = glm::cos(glm::radians(12.5f));
-	glm::vec3 dirLightDirection{1.0f, 0.0f, 1.0f};
+	glm::vec3 dirLightDirection{ 1.0f, 0.0f, 1.0f };
+	glm::vec3 pointLightPositions[] = {
+		glm::vec3(0.7f, 0.2f, 2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f, 2.0f, -12.0f),
+		glm::vec3(0.0f, 0.0f, -3.0f)
+	};
+	glm::vec3 pointLightAmbient = lightAmbient;
+	glm::vec3 pointLightDiffuse = lightDiffuse;
+	glm::vec3 pointLightSpecular = lightSpecular;
+	float pointLightAttenuationConstant = 1.0f;
+	float pointLightAttenuationLinear = 0.14f;
+	float pointLightAttenuationQuadratic = 0.07f;
+
+	int numPointLights = 4;
 }
 
 
@@ -220,35 +234,42 @@ void DoTransformations(Shader& shader, glm::vec3 cubePositions[], int i)
 	shader.SetUniformMatrix4fv("projection", projection);
 }
 
-
-void RenderLamp(VAO& lampVao, Shader& shader, Shader& woodenContainerShader)
+void SetPointLightUniformVals(Shader& shader, int pointLightIndex)
 {
-	lampVao.Bind();
-	shader.Activate();
-	double angle = glfwGetTime() / 2.0;
-	float lightSourceOrbitRadius = 2.0f;
-	glm::mat4 model = glm::mat4(1.0f);
-	lampPos.x = lightSourceOrbitRadius * static_cast<float>(cos(angle));
-	lampPos.z = lightSourceOrbitRadius * static_cast<float>(sin(angle));
+	std::string pointLightS = "pointLights[" + std::to_string(pointLightIndex) + "].";
+	shader.SetUniformVec3(pointLightS + "ambient", pointLightAmbient);
+	shader.SetUniformVec3(pointLightS + "diffuse", pointLightDiffuse);
+	shader.SetUniformVec3(pointLightS + "specular", pointLightSpecular);
+	shader.SetUniformf(pointLightS + "constant", pointLightAttenuationConstant);
+	shader.SetUniformf(pointLightS + "linear", pointLightAttenuationLinear);
+	shader.SetUniformf(pointLightS + "quadratic", pointLightAttenuationQuadratic);
+	shader.SetUniformVec3(pointLightS + "position", pointLightPositions[pointLightIndex]);
 
-	woodenContainerShader.SetUniformVec3("lampPos", lampPos);	//Update lampPos;
-	model = glm::translate(model, lampPos);
-	model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-
-	glm::mat4 view = camera.GetViewMatrix();
-
-	glm::mat4 projection = glm::perspective(glm::radians(45.0f),
-		static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT), 0.1f,
-		100.0f);
-
-	shader.SetUniformMatrix4fv("model", model);
-	shader.SetUniformMatrix4fv("view", view);
-	shader.SetUniformMatrix4fv("projection", projection);
-
-	glDrawArrays(GL_TRIANGLES, 0, 36);
-	lampVao.UnBind();
+	// 	shader.SetUniformVec3("pointLights[1].ambient", pointLightAmbient);
+	// 	shader.SetUniformVec3("pointLights[1].diffuse", pointLightDiffuse);
+	// 	shader.SetUniformVec3("pointLights[1].specular", pointLightSpecular);
+	// 	shader.SetUniformf("pointLights[1].constant", pointLightAttenuationConstant);
+	// 	shader.SetUniformf("pointLights[1].linear", pointLightAttenuationLinear);
+	// 	shader.SetUniformf("pointLights[1].quadratic", pointLightAttenuationQuadratic);
+	// 	shader.SetUniformVec3("pointLights[1].position", pointLightPositions[1]);
+	//
+	// 	shader.SetUniformVec3("pointLights[2].ambient", pointLightAmbient);
+	// 	shader.SetUniformVec3("pointLights[2].diffuse", pointLightDiffuse);
+	// 	shader.SetUniformVec3("pointLights[2].specular", pointLightSpecular);
+	// 	shader.SetUniformf("pointLights[2].constant", pointLightAttenuationConstant);
+	// 	shader.SetUniformf("pointLights[2].linear", pointLightAttenuationLinear);
+	// 	shader.SetUniformf("pointLights[2].quadratic", pointLightAttenuationQuadratic);
+	// 	shader.SetUniformVec3("pointLights[2].position", pointLightPositions[2]);
+	//
+	//
+	// 	shader.SetUniformVec3("pointLights[3].ambient", pointLightAmbient);
+	// 	shader.SetUniformVec3("pointLights[3].diffuse", pointLightDiffuse);
+	// 	shader.SetUniformVec3("pointLights[3].specular", pointLightSpecular);
+	// 	shader.SetUniformf("pointLights[3].constant", pointLightAttenuationConstant);
+	// 	shader.SetUniformf("pointLights[3].linear", pointLightAttenuationLinear);
+	// 	shader.SetUniformf("pointLights[3].quadratic", pointLightAttenuationQuadratic);
+	// 	shader.SetUniformVec3("pointLight[3].position", pointLightPositions[3]);
 }
-
 
 void SetSpotLightUniformVals(Shader& shader)
 {
@@ -279,6 +300,40 @@ void SetMaterialUniformVals(Shader& shader)
 	shader.SetUniformi("material.emission", 2);
 	shader.SetUniformf("material.shininess", materialShininess);
 }
+
+void RenderLamps(VAO& lampVao, Shader& shader, Shader& woodenContainerShader)
+{
+	lampVao.Bind();
+	shader.Activate();
+	// double angle = glfwGetTime() / 2.0;
+	// float lightSourceOrbitRadius = 2.0f;
+	// lampPos.x = lightSourceOrbitRadius * static_cast<float>(cos(angle));
+	// lampPos.z = lightSourceOrbitRadius * static_cast<float>(sin(angle));
+	for (int i = 0; i < numPointLights; ++i)
+	{
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, pointLightPositions[i]);
+		model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+		SetPointLightUniformVals(woodenContainerShader, i);
+		glm::mat4 view = camera.GetViewMatrix();
+
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
+			static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT), 0.1f,
+			100.0f);
+
+		shader.SetUniformMatrix4fv("model", model);
+		shader.SetUniformMatrix4fv("view", view);
+		shader.SetUniformMatrix4fv("projection", projection);
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	}
+	lampVao.UnBind();
+}
+
+
+
+
 
 
 void Run(GLFWwindow* window)
@@ -330,7 +385,7 @@ void Run(GLFWwindow* window)
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		// RenderLamp(lampVao, lampShader, woodenContainerShader);
+		RenderLamps(lampVao, lampShader, woodenContainerShader);
 
 		// check and call events and swap the buffers
 		glfwPollEvents();
