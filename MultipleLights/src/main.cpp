@@ -109,7 +109,7 @@ namespace
 
 	glm::vec3 lightColor{ 1.0f, 1.0f, 1.0f };
 	glm::vec3 lightDirection{ 0, 0, 10.0f };
-	glm::vec3 lightAmbient = 0.1f * lightColor;
+	glm::vec3 lightAmbient = 0.05f * lightColor;
 	glm::vec3 lightDiffuse = 0.5f * lightColor;
 	glm::vec3 lightSpecular = lightColor;
 	float lightAttenuationConstant = 1.0f;
@@ -118,6 +118,7 @@ namespace
 	float materialShininess = 2000.0f;
 	float spotlightCutoff = glm::cos(glm::radians(8.5f));
 	float spotlightOuterCutoff = glm::cos(glm::radians(12.5f));
+	glm::vec3 dirLightDirection{1.0f, 0.0f, 1.0f};
 }
 
 
@@ -249,27 +250,36 @@ void RenderLamp(VAO& lampVao, Shader& shader, Shader& woodenContainerShader)
 }
 
 
-void SetSpotLightUniformVals(Shader& woodenContainerShader)
+void SetSpotLightUniformVals(Shader& shader)
 {
-	woodenContainerShader.SetUniformVec3("spotLight.ambient", lightAmbient);
-	woodenContainerShader.SetUniformVec3("spotLight.diffuse", lightDiffuse);
-	woodenContainerShader.SetUniformVec3("spotLight.specular", lightSpecular);
-	woodenContainerShader.SetUniformf("spotLight.constant", lightAttenuationConstant);
-	woodenContainerShader.SetUniformf("spotLight.linear", lightAttenuationLinear);
-	woodenContainerShader.SetUniformf("spotLight.quadratic", lightAttenuationQuadratic);
-	woodenContainerShader.SetUniformVec3("spotLight.position", camera.position);
-	woodenContainerShader.SetUniformVec3("spotLight.direction", camera.direction);
-	woodenContainerShader.SetUniformf("spotLight.cutoff", spotlightCutoff);
-	woodenContainerShader.SetUniformf("spotLight.outerCutoff", spotlightOuterCutoff);
+	shader.SetUniformVec3("spotLight.ambient", lightAmbient);
+	shader.SetUniformVec3("spotLight.diffuse", lightDiffuse);
+	shader.SetUniformVec3("spotLight.specular", lightSpecular);
+	shader.SetUniformf("spotLight.constant", lightAttenuationConstant);
+	shader.SetUniformf("spotLight.linear", lightAttenuationLinear);
+	shader.SetUniformf("spotLight.quadratic", lightAttenuationQuadratic);
+	shader.SetUniformVec3("spotLight.position", camera.position);
+	shader.SetUniformVec3("spotLight.direction", camera.direction);
+	shader.SetUniformf("spotLight.cutoff", spotlightCutoff);
+	shader.SetUniformf("spotLight.outerCutoff", spotlightOuterCutoff);
 }
 
-void SetMaterialUniformVals(Shader& woodenContainerShader)
+void SetDirLightUniformVals(Shader& shader)
 {
-	woodenContainerShader.SetUniformi("material.diffuse", 0);
-	woodenContainerShader.SetUniformi("material.specular", 1);
-	woodenContainerShader.SetUniformi("material.emission", 2);
-	woodenContainerShader.SetUniformf("material.shininess", materialShininess);
+	shader.SetUniformVec3("dirLight.direction", dirLightDirection);
+	shader.SetUniformVec3("dirLight.ambient", lightAmbient);
+	shader.SetUniformVec3("dirLight.diffuse", lightDiffuse);
+	shader.SetUniformVec3("dirLight.specular", lightSpecular);
 }
+
+void SetMaterialUniformVals(Shader& shader)
+{
+	shader.SetUniformi("material.diffuse", 0);
+	shader.SetUniformi("material.specular", 1);
+	shader.SetUniformi("material.emission", 2);
+	shader.SetUniformf("material.shininess", materialShininess);
+}
+
 
 void Run(GLFWwindow* window)
 {
@@ -297,6 +307,7 @@ void Run(GLFWwindow* window)
 
 		woodenContainerShader.Activate();
 		SetSpotLightUniformVals(woodenContainerShader);
+		SetDirLightUniformVals(woodenContainerShader);
 		SetMaterialUniformVals(woodenContainerShader);
 		woodenContainerShader.SetUniformVec3("viewPos", camera.position);
 
