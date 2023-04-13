@@ -1,0 +1,6 @@
+.vs
+bin
+awesomeface.h
+awesomeface.cpp
+triangleTwoFragment.glsl
+awesomeface.png
